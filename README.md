@@ -19,11 +19,11 @@ A responsive **Flask-based web application** for managing inventory items effici
 
 ## 🚀 Getting Started
 
-🔗 Visit the website here: [https://your-website-link.com](https://your-website-link.com)
+🔗 Visit the website here: [https://your-website-link.com](https://anubhavsultania.pythonanywhere.com/)
 
 ## 📸 Screenshots
 
-> Coming soon! *(You can upload screenshots of your UI here)*
+> Coming soon!
 
 ## 🤝 Contributing
 
