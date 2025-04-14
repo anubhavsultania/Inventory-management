@@ -1,0 +1,104 @@
+          {% extends 'base.html' %}
+
+          {% block title %}Item List - Retail Inventory{% endblock %}
+
+          {% block page_title %}Inventory Items{% endblock %}
+
+          {% block header_actions %}
+          <a href="{{ url_for('add_item') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add New Item
+          </a>
+          {% endblock %}
+
+          {% block content %}
+          <div class="content-card">
+            <div class="card-header-actions">
+              <div class="card-title">
+                <i class="fas fa-boxes"></i>
+                <h2>Inventory Items</h2>
+              </div>
+
+              <form method="GET" action="{{ url_for('items_list') }}" class="search-form">
+                <div class="search-input-group">
+                  <i class="fas fa-search search-icon"></i>
+                  <input type="text" name="search" placeholder="Search by Name or SKU..." value="{{ search_term }}">
+                  {% if search_term %}
+                    <button type="button" class="clear-search" onclick="window.location='{{ url_for('items_list') }}'">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+              </form>
+            </div>
+
+            <div class="table-responsive">
+              {% if items %}
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>SKU</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Reorder Lvl</th>
+                    <th>Cost Price</th>
+                    <th>Selling Price</th>
+                    <th class="actions-column">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in items %}
+                  <tr class="{% if item.quantity == 0 %}out-of-stock{% elif item.quantity <= item.reorder_level %}low-stock{% endif %}">
+                    <td><span class="sku-code">{{ item.sku }}</span></td>
+                    <td>{{ item.name }}</td>
+                    <td>{{ item.category or 'N/A' }}</td>
+                    <td class="quantity-cell">
+                      {% if item.quantity == 0 %}
+                        <span class="status-badge danger">Out of Stock</span>
+                      {% elif item.quantity <= item.reorder_level %}
+                        <span class="status-badge warning">Low: {{ item.quantity }}</span>
+                      {% else %}
+                        {{ item.quantity }}
+                      {% endif %}
+                    </td>
+                    <td>{{ item.reorder_level }}</td>
+                    <td>${{ '%.2f'|format(item.cost_price or 0) }}</td>
+                    <td>${{ '%.2f'|format(item.selling_price or 0) }}</td>
+                    <td class="actions-cell">
+                      <a href="{{ url_for('adjust_stock_route', item_id=item.id) }}" class="btn-icon" title="Adjust Stock">
+                        <i class="fas fa-exchange-alt"></i>
+                      </a>
+                      <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-icon" title="Edit Item">
+                        <i class="fas fa-edit"></i>
+                      </a>
+                      <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this item?');">
+                        <button type="submit" class="btn-icon delete-btn" title="Delete Item">
+                          <i class="fas fa-trash-alt"></i>
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              {% else %}
+              <div class="empty-state">
+                {% if search_term %}
+                  <div class="empty-icon">
+                    <i class="fas fa-search"></i>
+                  </div>
+                  <p>No items found matching "{{ search_term }}".</p>
+                  <a href="{{ url_for('items_list') }}" class="btn btn-secondary">Clear Search</a>
+                {% else %}
+                  <div class="empty-icon">
+                    <i class="fas fa-box-open"></i>
+                  </div>
+                  <p>No items in inventory yet.</p>
+                  <a href="{{ url_for('add_item') }}" class="btn btn-primary">Add Your First Item</a>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+          </div>
+          {% endblock %}

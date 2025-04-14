@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Retail IMS{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <a href="{{ url_for('index') }}" class="sidebar-brand">
+        <i class="fas fa-warehouse"></i>
+        <h2>Retail IMS</h2>
+      </a>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('index') }}" class="sidebar-menu-link {% if request.endpoint == 'index' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('items_list') }}" class="sidebar-menu-link {% if request.endpoint == 'items_list' %}active{% endif %}">
+            <i class="fas fa-boxes"></i>
+            <span>Items</span>
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('add_item') }}" class="sidebar-menu-link {% if request.endpoint == 'add_item' %}active{% endif %}">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add Item</span>
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('adjust_stock_route') }}" class="sidebar-menu-link {% if request.endpoint == 'adjust_stock_route' %}active{% endif %}">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Adjust Stock</span>
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('stock_log') }}" class="sidebar-menu-link {% if request.endpoint == 'stock_log' %}active{% endif %}">
+            <i class="fas fa-history"></i>
+            <span>Stock Log</span>
+          </a>
+        </li>
+        <li class="sidebar-menu-item">
+          <a href="{{ url_for('about_developer') }}" class="sidebar-menu-link {% if request.endpoint == 'about_developer' %}active{% endif %}">
+            <i class="fas fa-user-circle"></i>
+            <span>About Developer</span>
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="page-title">
+            {% block page_title %}Dashboard{% endblock %}
+          </h1>
+        </div>
+        <div class="top-bar-right">
+          <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode">
+            <i class="fas fa-moon"></i>
+          </button>
+          {% block header_actions %}{% endblock %}
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-container">
+            {% for category, message in messages %}
+              <div class="flash-message {{ category }}">
+                <div class="flash-icon">
+                  {% if category == 'success' %}
+                    <i class="fas fa-check-circle"></i>
+                  {% elif category == 'error' %}
+                    <i class="fas fa-exclamation-circle"></i>
+                  {% elif category == 'warning' %}
+                    <i class="fas fa-exclamation-triangle"></i>
+                  {% else %}
+                    <i class="fas fa-info-circle"></i>
+                  {% endif %}
+                </div>
+                <div class="flash-content">{{ message }}</div>
+                <button class="flash-close"><i class="fas fa-times"></i></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  {% block page_scripts %}{% endblock %}
+</body>
+</html>

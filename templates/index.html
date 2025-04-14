@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Retail Inventory{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Stats Overview Section -->
+  <section class="dashboard-section stats-overview">
+    <h2 class="section-title"><i class="fas fa-chart-line"></i> Inventory Overview</h2>
+    
+    <div class="stats-grid">
+      <div class="stat-card primary-card">
+        <div class="stat-icon">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-title">Total Items</h3>
+          <p class="stat-value">{{ stats.get('total_items', 'N/A') }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card success-card">
+        <div class="stat-icon">
+          <i class="fas fa-boxes-stacked"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-title">Total Stock</h3>
+          <p class="stat-value">{{ stats.get('total_quantity', 'N/A') }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card warning-card">
+        <div class="stat-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-title">Low Stock</h3>
+          <p class="stat-value">{{ low_stock|length }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card danger-card">
+        <div class="stat-icon">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3 class="stat-title">Out of Stock</h3>
+          <p class="stat-value">{{ out_of_stock|length }}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions Section -->
+  <section class="dashboard-section quick-actions">
+    <h2 class="section-title"><i class="fas fa-bolt"></i> Quick Actions</h2>
+    
+    <div class="actions-grid">
+      <a href="{{ url_for('add_item') }}" class="action-card">
+        <div class="action-icon">
+          <i class="fas fa-plus-circle"></i>
+        </div>
+        <h3 class="action-title">Add New Item</h3>
+      </a>
+
+      <a href="{{ url_for('adjust_stock_route') }}" class="action-card">
+        <div class="action-icon">
+          <i class="fas fa-exchange-alt"></i>
+        </div>
+        <h3 class="action-title">Adjust Stock</h3>
+      </a>
+
+      <a href="{{ url_for('items_list') }}" class="action-card">
+        <div class="action-icon">
+          <i class="fas fa-list"></i>
+        </div>
+        <h3 class="action-title">View Inventory</h3>
+      </a>
+
+      <a href="{{ url_for('stock_log') }}" class="action-card">
+        <div class="action-icon">
+          <i class="fas fa-history"></i>
+        </div>
+        <h3 class="action-title">Stock History</h3>
+      </a>
+    </div>
+  </section>
+
+  <!-- Low Stock Alert Section -->
+  <section class="dashboard-section low-stock-alert">
+    <div class="section-header">
+      <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Low Stock Alerts</h2>
+      {% if low_stock %}
+        <span class="alert-badge">{{ low_stock|length }} items</span>
+      {% endif %}
+    </div>
+    
+    {% if low_stock %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Current Qty</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in low_stock %}
+          <tr>
+            <td><span class="sku-code">{{ item.sku }}</span></td>
+            <td>{{ item.name }}</td>
+            <td class="quantity-cell">{{ item.quantity }}</td>
+            <td>{{ item.reorder_level }}</td>
+            <td><span class="status-badge warning">Low Stock</span></td>
+            <td class="actions-cell">
+              <a href="{{ url_for('adjust_stock_route', item_id=item.id) }}" class="btn-icon" title="Adjust Stock">
+                <i class="fas fa-exchange-alt"></i>
+              </a>
+              <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-icon" title="Edit Item">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <p>No items are currently low on stock. Great job managing your inventory!</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <!-- Out of Stock Alert Section -->
+  <section class="dashboard-section out-of-stock-alert">
+    <div class="section-header">
+      <h2 class="section-title"><i class="fas fa-times-circle"></i> Out of Stock Alerts</h2>
+      {% if out_of_stock %}
+        <span class="alert-badge danger">{{ out_of_stock|length }} items</span>
+      {% endif %}
+    </div>
+    
+    {% if out_of_stock %}
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Name</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in out_of_stock %}
+          <tr>
+            <td><span class="sku-code">{{ item.sku }}</span></td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.reorder_level }}</td>
+            <td><span class="status-badge danger">Out of Stock</span></td>
+            <td class="actions-cell">
+              <a href="{{ url_for('adjust_stock_route', item_id=item.id) }}" class="btn-icon" title="Adjust Stock">
+                <i class="fas fa-exchange-alt"></i>
+              </a>
+              <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn-icon" title="Edit Item">
+                <i class="fas fa-edit"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <p>All items are currently in stock. Keep up the good work!</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

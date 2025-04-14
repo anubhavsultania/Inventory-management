@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Adjust Stock - Retail Inventory{% endblock %}
+
+{% block page_title %}Adjust Stock Quantity{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <div class="card-header" style="background: linear-gradient(135deg, #4568dc, #3f51b5); color: white; border-radius: 8px 8px 0 0; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <div class="card-title">
+      <i class="fas fa-exchange-alt" style="font-size: 24px; margin-right: 10px; color: #ffeb3b;"></i>
+      <h2 style="margin: 0; display: inline-block; font-weight: 600;">Adjust Stock Quantity</h2>
+    </div>
+  </div>
+
+  <div class="card-content" style="background: white; padding: 25px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+    <form method="POST" action="{{ url_for('adjust_stock_route') }}" class="item-form">
+      <div class="form-grid adjust-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="item_id" style="display: block; margin-bottom: 8px; font-weight: 600; color: #3f51b5;">
+            Select Item <span class="required" style="color: #f44336;">*</span>
+          </label>
+          <select id="item_id" name="item_id" required class="enhanced-select" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; background-color: #f9fafc; transition: border-color 0.3s; font-size: 14px;">
+            <option value="">-- Select an Item --</option>
+            {% for item in items %}
+              <option value="{{ item.id }}" {{ 'selected' if request.args.get('item_id')|int == item.id }}>
+                {{ item.name }} (SKU: {{ item.sku }}) - Current: {{ item.quantity }}
+              </option>
+            {% endfor %}
+          </select>
+          <small class="form-helper" style="display: block; margin-top: 5px; color: #757575; font-style: italic;">Choose the item to adjust stock for</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #3f51b5;">
+            Adjustment Type <span class="required" style="color: #f44336;">*</span>
+          </label>
+          <div class="radio-group" style="display: flex; gap: 15px;">
+            <div class="radio-option" style="flex: 1; background-color: #e8f5e9; border: 2px solid #e0e0e0; border-radius: 6px; padding: 10px; transition: all 0.2s; cursor: pointer; text-align: center;">
+              <input type="radio" id="adjustment_in" name="adjustment_type" value="IN" required style="margin-right: 5px;">
+              <label for="adjustment_in" style="cursor: pointer;">
+                <i class="fas fa-arrow-circle-down" style="color: #4caf50; font-size: 18px; margin-right: 5px;"></i>
+                <span style="font-weight: 500;">Stock In (Add)</span>
+              </label>
+            </div>
+            <div class="radio-option" style="flex: 1; background-color: #ffebee; border: 2px solid #e0e0e0; border-radius: 6px; padding: 10px; transition: all 0.2s; cursor: pointer; text-align: center;">
+              <input type="radio" id="adjustment_out" name="adjustment_type" value="OUT" required style="margin-right: 5px;">
+              <label for="adjustment_out" style="cursor: pointer;">
+                <i class="fas fa-arrow-circle-up" style="color: #f44336; font-size: 18px; margin-right: 5px;"></i>
+                <span style="font-weight: 500;">Stock Out (Remove)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="quantity_change" style="display: block; margin-bottom: 8px; font-weight: 600; color: #3f51b5;">
+            Quantity to Adjust <span class="required" style="color: #f44336;">*</span>
+          </label>
+          <div class="number-input-group" style="display: flex; align-items: center; border: 2px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+            <button type="button" class="number-decrement" onclick="decrementValue()" style="background-color: #eeeeee; border: none; height: 44px; width: 44px; cursor: pointer; transition: background-color 0.3s;">
+              <i class="fas fa-minus" style="color: #616161;"></i>
+            </button>
+            <input type="number" id="quantity_change" name="quantity_change" min="1" step="1" value="1" required style="flex: 1; border: none; text-align: center; padding: 12px; font-size: 14px; -moz-appearance: textfield;">
+            <button type="button" class="number-increment" onclick="incrementValue()" style="background-color: #eeeeee; border: none; height: 44px; width: 44px; cursor: pointer; transition: background-color 0.3s;">
+              <i class="fas fa-plus" style="color: #616161;"></i>
+            </button>
+          </div>
+          <small class="form-helper" style="display: block; margin-top: 5px; color: #757575; font-style: italic;">Enter a positive number</small>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label for="reason" style="display: block; margin-bottom: 8px; font-weight: 600; color: #3f51b5;">
+            Reason (Optional)
+          </label>
+          <input type="text" id="reason" name="reason" placeholder="e.g., Sale, Received Shipment, Correction..." style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 6px; background-color: #f9fafc; transition: border-color 0.3s; font-size: 14px;">
+          <small class="form-helper" style="display: block; margin-top: 5px; color: #757575; font-style: italic;">Helps with tracking adjustment history</small>
+        </div>
+      </div>
+
+      <div class="form-actions" style="margin-top: 25px; display: flex; gap: 15px; justify-content: flex-end;">
+        <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #4568dc, #3f51b5); color: white; padding: 12px 20px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.3s;">
+          <i class="fas fa-check" style="margin-right: 8px;"></i> Apply Adjustment
+        </button>
+        <a href="{{ url_for('items_list') }}" class="btn btn-secondary" style="background-color: #f5f5f5; color: #616161; padding: 12px 20px; border: none; border-radius: 6px; font-weight: 500; cursor: pointer; display: flex; align-items: center; text-decoration: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s;">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if request.args.get('item_id') %}
+<div class="content-card stock-history" style="margin-top: 30px; background: white; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden;">
+  <div class="card-header" style="background: linear-gradient(135deg, #5c6bc0, #3949ab); color: white; padding: 20px;">
+    <div class="card-title">
+      <i class="fas fa-history" style="font-size: 24px; margin-right: 10px; color: #ffeb3b;"></i>
+      <h2 style="margin: 0; display: inline-block; font-weight: 600;">Recent Stock Movements for Selected Item</h2>
+    </div>
+  </div>
+  
+  <div class="card-content" style="padding: 25px;">
+    <!-- This would require adding a route or modifying the backend to fetch item-specific stock history -->
+    <!-- For now, this is a placeholder that would need backend implementation -->
+    <p class="info-note" style="background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 0; display: flex; align-items: center; border-radius: 4px;">
+      <i class="fas fa-info-circle" style="color: #2196f3; font-size: 20px; margin-right: 10px;"></i> 
+      Select an item to view its recent stock movement history.
+    </p>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  function incrementValue() {
+    const input = document.getElementById('quantity_change');
+    const currentValue = parseInt(input.value) || 0;
+    input.value = currentValue + 1;
+  }
+  
+  function decrementValue() {
+    const input = document.getElementById('quantity_change');
+    const currentValue = parseInt(input.value) || 0;
+    if (currentValue > 1) {
+      input.value = currentValue - 1;
+    }
+  }
+  
+  // Enhancement: Add visual feedback for radio buttons
+  document.querySelectorAll('.radio-option').forEach(option => {
+    option.addEventListener('click', function() {
+      // Find the radio input inside this option and check it
+      const radio = this.querySelector('input[type="radio"]');
+      radio.checked = true;
+      
+      // Update styles for all options
+      document.querySelectorAll('.radio-option').forEach(opt => {
+        if (opt.querySelector('input[type="radio"]').checked) {
+          opt.style.borderColor = opt.querySelector('input[type="radio"]').value === 'IN' ? '#4caf50' : '#f44336';
+          opt.style.boxShadow = '0 0 0 1px ' + (opt.querySelector('input[type="radio"]').value === 'IN' ? '#4caf50' : '#f44336');
+        } else {
+          opt.style.borderColor = '#e0e0e0';
+          opt.style.boxShadow = 'none';
+        }
+      });
+    });
+  });
+  
+  // Enhancement: Add focus and hover effects for inputs
+  document.querySelectorAll('input, select').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.style.borderColor = '#3f51b5';
+      this.style.boxShadow = '0 0 0 2px rgba(63, 81, 181, 0.2)';
+    });
+    
+    input.addEventListener('blur', function() {
+      this.style.borderColor = '#e0e0e0';
+      this.style.boxShadow = 'none';
+    });
+  });
+  
+  // Enhancement: Add hover effects for buttons
+  document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('mouseenter', function() {
+      if (this.classList.contains('btn-primary')) {
+        this.style.boxShadow = '0 4px 8px rgba(63, 81, 181, 0.3)';
+      } else {
+        this.style.backgroundColor = '#e0e0e0';
+      }
+    });
+    
+    btn.addEventListener('mouseleave', function() {
+      if (this.classList.contains('btn-primary')) {
+        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      } else {
+        this.style.backgroundColor = '#f5f5f5';
+      }
+    });
+  });
+</script>
+{% endblock %}

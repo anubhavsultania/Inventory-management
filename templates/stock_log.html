@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock Movement Log - Retail Inventory{% endblock %}
+
+{% block page_title %}Stock Movement Log{% endblock %}
+
+{% block content %}
+<div class="content-card">
+  <div class="card-header">
+    <div class="card-title">
+      <i class="fas fa-history"></i>
+      <h2>Stock Movement History</h2>
+    </div>
+    
+    <div class="filter-controls">
+      <select id="movement-filter" class="filter-select">
+        <option value="all">All Movements</option>
+        <option value="in">Stock In Only</option>
+        <option value="out">Stock Out Only</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="card-content">
+    <div class="table-responsive">
+      {% if movements %}
+      <table class="data-table" id="movements-table">
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>Item Name</th>
+            <th>SKU</th>
+            <th>Type</th>
+            <th>Quantity</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for movement in movements %}
+          <tr class="movement-{{ movement.adjustment_type.lower() }}">
+            <td>{{ movement.timestamp[:16] }}</td>
+            <td>{{ movement.item_name }}</td>
+            <td><span class="sku-code">{{ movement.sku }}</span></td>
+            <td>
+              {% if movement.adjustment_type == 'IN' %}
+                <span class="status-badge success">Stock In</span>
+              {% elif movement.adjustment_type == 'OUT' %}
+                <span class="status-badge danger">Stock Out</span>
+              {% else %}
+                <span class="status-badge">{{ movement.adjustment_type }}</span>
+              {% endif %}
+            </td>
+            <td class="quantity-cell">
+              {% if movement.adjustment_type == 'IN' %}
+                <span class="quantity-in">+{{ movement.quantity_change }}</span>
+              {% elif movement.adjustment_type == 'OUT' %}
+                <span class="quantity-out">-{{ movement.quantity_change }}</span>
+              {% else %}
+                {{ movement.quantity_change }}
+              {% endif %}
+            </td>
+            <td>{{ movement.reason or 'N/A' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">
+          <i class="fas fa-clipboard-list"></i>
+        </div>
+        <p>No stock movements recorded yet.</p>
+        <a href="{{ url_for('adjust_stock_route') }}" class="btn btn-primary">Adjust Stock</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const filterSelect = document.getElementById('movement-filter');
+    if (filterSelect) {
+      filterSelect.addEventListener('change', function() {
+        const filterValue = this.value;
+        const rows = document.querySelectorAll('#movements-table tbody tr');
+        
+        rows.forEach(row => {
+          if (filterValue === 'all') {
+            row.style.display = '';
+          } else if (filterValue === 'in' && row.classList.contains('movement-in')) {
+            row.style.display = '';
+          } else if (filterValue === 'out' && row.classList.contains('movement-out')) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  });
+</script>
+{% endblock %}
