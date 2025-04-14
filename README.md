@@ -19,7 +19,7 @@ A responsive **Flask-based web application** for managing inventory items effici
 
 ## 🚀 Getting Started
 
-🔗 Visit the website here: [https://your-website-link.com](https://anubhavsultania.pythonanywhere.com/)
+🔗 Visit the website here: [(https://anubhavsultania.pythonanywhere.com/)](https://anubhavsultania.pythonanywhere.com/)
 
 ## 📸 Screenshots
 
